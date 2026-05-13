@@ -164,3 +164,12 @@ To also remove the volumes (⚠️ deletes all data):
 ```bash
 docker compose down -v
 ```
+
+## To do
+
+- **Automated runner registration** — a shell script or init container that registers the runner automatically on startup using the GitLab API
+- **Real pipeline** — a `.gitlab-ci.yml` that builds a real application, runs tests, builds a Docker image, and pushes it to GitLab's container registry
+- **TLS/HTTPS** — configure Let's Encrypt or self-signed certificates so GitLab runs over HTTPS
+- **Terraform provider** — manage GitLab projects, tokens, and runner settings via Terraform
+- **Monitoring** — add Prometheus + Grafana to observe GitLab and runner metrics
+- **Backup strategy** — script to dump GitLab volumes and restore them
