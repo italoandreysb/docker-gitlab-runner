@@ -56,11 +56,28 @@ docker compose logs -f gitlab
 
 ## Register the GitLab Runner
 
-Once GitLab is up, register the runner for a project or globally.
+Once GitLab is up, you need a registration token to connect the runner to GitLab.
 
-1. Get the registration **token** from *Settings > CI/CD > Runners* in your project or admin area.
+### Getting the registration token
 
-2. Run the registration:
+There are two types of tokens:
+
+- **Global token** (instance-wide) — found at *Admin Area (gear icon, bottom-left) > CI/CD > Runners*. Runners registered with this token are available to all projects.
+- **Project token** — found inside a specific project at *Settings > CI/CD > Runners*. Only that project can use runners registered with this token. You must create a project first to see this option.
+
+If you can't find the option in the menus, create a project first or log in as `root` (admin) to access the global settings.
+
+> **Alternative:** You can also retrieve the global token directly from the container:
+> ```bash
+> docker compose exec gitlab gitlab-rails runner -e production \
+>   "puts Gitlab::CurrentSettings.current_application_settings.runners_registration_token"
+> ```
+
+### Registration methods
+
+You can register the runner in two ways:
+
+**1. Via CLI (recommended for Docker):**
 
 ```bash
 docker compose exec gitlab-runner gitlab-runner register \
@@ -72,12 +89,21 @@ docker compose exec gitlab-runner gitlab-runner register \
   --docker-volumes "/var/run/docker.sock:/var/run/docker.sock"
 ```
 
-> The internal DNS `http://gitlab:80` works because the runner is on the same compose network.
-> The `/var/run/docker.sock` volume allows the runner to spawn Docker containers (docker-in-docker / docker executor).
+- `--url http://gitlab:80` — internal DNS of the GitLab container (works because they share the same compose network)
+- `--executor docker` — the runner creates Docker containers to execute jobs
+- `--docker-volumes /var/run/docker.sock` — allows jobs to use Docker inside the container (docker-in-docker)
 
-## Verify the runner
+**2. Via Web UI:**
 
-In GitLab, go to *Settings > CI/CD > Runners* and confirm the runner shows as **online**.
+Go to *Settings > CI/CD > Runners*, click "Register a runner", and follow the step-by-step instructions (the page shows the register command already filled in).
+
+### Verify the runner
+
+In GitLab, go to *Admin > CI/CD > Runners* or *Settings > CI/CD > Runners* of your project. The runner should appear as **online** (green).
+
+## How to use
+
+Create a `.gitlab-ci.yml` at the root of your repository (see example below). When you push, GitLab triggers a pipeline, and the runner executes the jobs.
 
 ## Pipeline example
 
