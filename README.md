@@ -12,7 +12,7 @@ Spins up a **GitLab CE** instance and a **GitLab Runner** using Docker Compose, 
 
 | Service        | Image                           | Ports                              |
 |----------------|---------------------------------|------------------------------------|
-| gitlab         | gitlab/gitlab-ce:18.0.2-ce.0   | 8080 (HTTP), 8443 (HTTPS), 2222 (SSH) |
+| gitlab         | gitlab/gitlab-ce:18.0.2-ce.0   | 80 (HTTP), 8443 (HTTPS), 2222 (SSH) |
 | gitlab-runner  | gitlab/gitlab-runner:v18.0.0   | — (docker executor)                |
 
 ## Configuration
@@ -50,7 +50,7 @@ docker compose logs -f gitlab
 
 ## Access GitLab
 
-- **URL:** http://localhost:8080
+- **URL:** http://localhost:80
 - **User:** `root`
 - **Password:** the one set in `GITLAB_ROOT_PASSWORD`
 
