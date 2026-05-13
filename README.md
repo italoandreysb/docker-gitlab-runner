@@ -1,87 +1,87 @@
-# GitLab + GitLab Runner com Docker Compose
+# GitLab + GitLab Runner with Docker Compose
 
-Sobe uma instância do **GitLab CE** e um **GitLab Runner** utilizando Docker Compose, prontos para executar pipelines de CI/CD.
+Spins up a **GitLab CE** instance and a **GitLab Runner** using Docker Compose, ready to run CI/CD pipelines.
 
-## Pré-requisitos
+## Prerequisites
 
 - Docker Engine 24+
 - Docker Compose v2+
-- Git (para clonar)
+- Git (to clone)
 
-## Estrutura
+## Structure
 
-| Serviço         | Imagem                          | Portas                          |
-|-----------------|---------------------------------|---------------------------------|
-| gitlab          | gitlab/gitlab-ce:18.0.2-ce.0   | 8080 (HTTP), 8443 (HTTPS), 2222 (SSH) |
-| gitlab-runner   | gitlab/gitlab-runner:v18.0.0   | — (executor docker)             |
+| Service        | Image                           | Ports                              |
+|----------------|---------------------------------|------------------------------------|
+| gitlab         | gitlab/gitlab-ce:18.0.2-ce.0   | 8080 (HTTP), 8443 (HTTPS), 2222 (SSH) |
+| gitlab-runner  | gitlab/gitlab-runner:v18.0.0   | — (docker executor)                |
 
-## Configuração
+## Configuration
 
-1. Copie o `.env` e ajuste as variáveis:
+1. Copy `.env` and adjust the variables:
 
 ```bash
 cp .env .env.local
 ```
 
-2. Edite `.env` com as portas, hostname e senha desejados:
+2. Edit `.env` with your desired ports, hostname and password:
 
 ```ini
 GITLAB_HOSTNAME=gitlab.local
 GITLAB_EXTERNAL_URL=http://gitlab.local
-GITLAB_ROOT_PASSWORD=SuaSenhaForte
+GITLAB_ROOT_PASSWORD=YourStrongPassword
 GITLAB_HTTP_PORT=8080
 GITLAB_HTTPS_PORT=8443
 GITLAB_SSH_PORT=2222
 ```
 
-> ⚠️ Altere `GITLAB_ROOT_PASSWORD` para uma senha forte.
+> ⚠️ Change `GITLAB_ROOT_PASSWORD` to a strong password.
 
-## Subir os serviços
+## Start the services
 
 ```bash
 docker compose up -d
 ```
 
-Aguarde alguns minutos até o GitLab iniciar completamente. Acompanhe os logs:
+Wait a few minutes for GitLab to fully start. Follow the logs:
 
 ```bash
 docker compose logs -f gitlab
 ```
 
-## Acessar o GitLab
+## Access GitLab
 
 - **URL:** http://localhost:8080
-- **Usuário:** `root`
-- **Senha:** a definida em `GITLAB_ROOT_PASSWORD`
+- **User:** `root`
+- **Password:** the one set in `GITLAB_ROOT_PASSWORD`
 
-## Registrar o GitLab Runner
+## Register the GitLab Runner
 
-Com o GitLab no ar, registre o runner para um projeto ou globalmente.
+Once GitLab is up, register the runner for a project or globally.
 
-1. Obtenha o **token** de registro em: *Settings > CI/CD > Runners* no projeto ou na administração.
+1. Get the registration **token** from *Settings > CI/CD > Runners* in your project or admin area.
 
-2. Execute o registro:
+2. Run the registration:
 
 ```bash
 docker compose exec gitlab-runner gitlab-runner register \
   --non-interactive \
   --url "http://gitlab:80" \
-  --token "SEU_TOKEN_AQUI" \
+  --token "YOUR_TOKEN_HERE" \
   --executor "docker" \
   --docker-image "alpine:latest" \
   --docker-volumes "/var/run/docker.sock:/var/run/docker.sock"
 ```
 
-> O DNS interno `http://gitlab:80` funciona porque o runner está na mesma rede do compose.
-> O volume `/var/run/docker.sock` permite que o runner execute containers Docker (docker-in-docker / docker executor).
+> The internal DNS `http://gitlab:80` works because the runner is on the same compose network.
+> The `/var/run/docker.sock` volume allows the runner to spawn Docker containers (docker-in-docker / docker executor).
 
-## Verificar o runner
+## Verify the runner
 
-No GitLab, vá em *Settings > CI/CD > Runners* e confirme que o runner aparece como **online**.
+In GitLab, go to *Settings > CI/CD > Runners* and confirm the runner shows as **online**.
 
-## Exemplo de pipeline
+## Pipeline example
 
-Crie um `.gitlab-ci.yml` na raiz do seu repositório:
+Create a `.gitlab-ci.yml` at the root of your repository:
 
 ```yaml
 stages:
@@ -91,30 +91,30 @@ stages:
 test-job:
   stage: test
   script:
-    - echo "Rodando testes..."
+    - echo "Running tests..."
 
 build-job:
   stage: build
   script:
-    - echo "Fazendo build..."
+    - echo "Building..."
 ```
 
-## Volumes persistentes
+## Persistent volumes
 
-Os dados são mantidos em volumes Docker:
+Data is kept in Docker volumes:
 
-- `gitlab_config` — configurações do GitLab
+- `gitlab_config` — GitLab configuration
 - `gitlab_logs` — logs
-- `gitlab_data` — dados (repositórios, banco, etc.)
-- `gitlab_runner_config` — configuração do runner (`config.toml`)
+- `gitlab_data` — data (repositories, database, etc.)
+- `gitlab_runner_config` — runner configuration (`config.toml`)
 
-## Parar e remover
+## Stop and remove
 
 ```bash
 docker compose down
 ```
 
-Para remover também os volumes (apaga todos os dados):
+To also remove the volumes (⚠️ deletes all data):
 
 ```bash
 docker compose down -v
