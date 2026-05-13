@@ -82,14 +82,14 @@ You can register the runner in two ways:
 ```bash
 docker compose exec gitlab-runner gitlab-runner register \
   --non-interactive \
-  --url "http://gitlab:80" \
+  --url "http://localhost:80" \
   --token "YOUR_TOKEN_HERE" \
   --executor "docker" \
   --docker-image "alpine:latest" \
   --docker-volumes "/var/run/docker.sock:/var/run/docker.sock"
 ```
 
-- `--url http://gitlab:80` — internal DNS of the GitLab container (works because they share the same compose network)
+- `--url http://localhost:80` — internal DNS of the GitLab container (works because they share the same compose network)
 - `--executor docker` — the runner creates Docker containers to execute jobs
 - `--docker-volumes /var/run/docker.sock` — allows jobs to use Docker inside the container (docker-in-docker)
 
