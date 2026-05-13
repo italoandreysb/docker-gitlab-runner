@@ -20,7 +20,7 @@ Spins up a **GitLab CE** instance and a **GitLab Runner** using Docker Compose, 
 1. Copy `.env` and adjust the variables:
 
 ```bash
-cp .env .env.local
+touch .env
 ```
 
 2. Edit `.env` with your desired ports, hostname and password:
