@@ -82,8 +82,8 @@ You can register the runner in two ways:
 ```bash
 docker compose exec gitlab-runner gitlab-runner register \
   --non-interactive \
-  --url "http://localhost:80" \
-  --token "YOUR_TOKEN_HERE" \
+  --url "http://gitlab:80" \
+  --registration-token "YOUR_TOKEN_HERE" \
   --executor "docker" \
   --docker-image "alpine:latest" \
   --docker-volumes "/var/run/docker.sock:/var/run/docker.sock"
