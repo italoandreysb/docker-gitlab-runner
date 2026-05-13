@@ -26,10 +26,10 @@ touch .env
 2. Edit `.env` with your desired ports, hostname and password:
 
 ```ini
-GITLAB_HOSTNAME=gitlab.local
-GITLAB_EXTERNAL_URL=http://gitlab.local
+GITLAB_HOSTNAME=your-ip-or-DNS # or gitlab.local 
+GITLAB_EXTERNAL_URL=your-ip-or-DNS # or http://gitlab.local
 GITLAB_ROOT_PASSWORD=YourStrongPassword
-GITLAB_HTTP_PORT=8080
+GITLAB_HTTP_PORT=80
 GITLAB_HTTPS_PORT=8443
 GITLAB_SSH_PORT=2222
 ```
