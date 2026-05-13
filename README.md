@@ -15,6 +15,24 @@ Spins up a **GitLab CE** instance and a **GitLab Runner** using Docker Compose, 
 | gitlab         | gitlab/gitlab-ce:18.0.2-ce.0   | 80 (HTTP), 8443 (HTTPS), 2222 (SSH) |
 | gitlab-runner  | gitlab/gitlab-runner:v18.0.0   | — (docker executor)                |
 
+## DevOps best practices
+
+This project follows key infrastructure and Docker Compose best practices:
+
+| Practice | How it's applied |
+|---|---|
+| **Infrastructure as Code** | Entire environment defined in `docker-compose.yml` — reproducible with a single command |
+| **Separation of concerns** | Configuration isolated in `.env`, secrets in `.gitignore`d `.env`, logic in `docker-compose.yml` |
+| **Immutable infrastructure** | Services use pinned version tags (`18.0.2-ce.0`, `v18.0.0`) instead of `latest` |
+| **Persistence via volumes** | Named Docker volumes (`gitlab_config`, `gitlab_data`, `gitlab_logs`, `gitlab_runner_config`) keep data across restarts |
+| **Service isolation** | GitLab and Runner run in separate containers with distinct responsibilities |
+| **Docker-in-Docker (DinD)** | Runner mounts `/var/run/docker.sock` so pipeline jobs can spawn containers without nested Docker |
+| **Health management** | `restart: unless-stopped` ensures services recover from failures automatically |
+| **Ephemeral runner config** | Runner configuration is stored in a volume; can be destroyed and re-registered without affecting GitLab data |
+| **Single source of truth** | All configurable parameters (ports, passwords, hostname) centralized in `.env` |
+| **Security** | `shm_size: 256m` prevents shared memory issues; SSH on non-standard port; initial root password set via environment |
+
+
 ## Configuration
 
 1. Copy `.env` and adjust the variables:
@@ -133,6 +151,7 @@ Data is kept in Docker volumes:
 - `gitlab_logs` — logs
 - `gitlab_data` — data (repositories, database, etc.)
 - `gitlab_runner_config` — runner configuration (`config.toml`)
+
 
 ## Stop and remove
 
