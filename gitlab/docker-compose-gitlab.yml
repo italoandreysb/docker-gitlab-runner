@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:18.0.2-ce.0 # Imagem oficial do GitLab CE
+    container_name: gitlab
+    restart: unless-stopped
+    hostname: ${GITLAB_HOSTNAME}
+
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        # URL pública do GitLab
+        external_url '${GITLAB_EXTERNAL_URL}'
+
+        # Senha inicial do usuário root
+        gitlab_rails['initial_root_password'] = '${GITLAB_ROOT_PASSWORD}'
+
+        # Necessário se usar SSH em porta customizada
+        gitlab_rails['gitlab_shell_ssh_port'] = ${GITLAB_SSH_PORT}
+
+    ports:
+      - "${GITLAB_HTTP_PORT}:80"   # HTTP
+      - "${GITLAB_HTTPS_PORT}:443" # HTTPS
+      - "${GITLAB_SSH_PORT}:22"    # SSH Git
+
+    shm_size: "1g" # Recomendado para melhor estabilidade
+
+    volumes:
+      - gitlab_config:/etc/gitlab
+      - gitlab_logs:/var/log/gitlab
+      - gitlab_data:/var/opt/gitlab
+
+    networks:
+      - gitlab-network
+
+volumes:
+  gitlab_config:
+  gitlab_logs:
+  gitlab_data:
+
+networks:
+  gitlab-network:
+    driver: bridge
