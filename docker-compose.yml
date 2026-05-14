@@ -24,10 +24,14 @@ services:
       - gitlab_logs:/var/log/gitlab
       - gitlab_data:/var/opt/gitlab
 
+    networks:
+      - gitlab-network
+
   gitlab-runner:
     image: gitlab/gitlab-runner:v18.0.0
     container_name: gitlab-runner
     restart: unless-stopped
+
     depends_on:
       - gitlab
 
@@ -35,8 +39,15 @@ services:
       - gitlab_runner_config:/etc/gitlab-runner
       - /var/run/docker.sock:/var/run/docker.sock
 
+    networks:
+      - gitlab-network
+
 volumes:
   gitlab_config:
   gitlab_logs:
   gitlab_data:
   gitlab_runner_config:
+
+networks:
+  gitlab-network:
+    driver: bridge
