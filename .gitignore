@@ -1,1 +1,4 @@
 .env
+gitlab/.env
+runner/.env
+*.env

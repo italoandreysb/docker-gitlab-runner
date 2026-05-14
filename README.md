@@ -1,50 +1,173 @@
-# GitLab + GitLab Runner with Docker Compose
+# Principais Pontos Técnicos da Arquitetura
 
-Spins up a **GitLab CE** instance and a **GitLab Runner** using Docker Compose, ready to run CI/CD pipelines.
+## Separação entre GitLab e Runner
 
-## Prerequisites
+A infraestrutura foi dividida em dois ambientes independentes:
 
-- Docker Engine 24+
-- Docker Compose v2+
-- Git (to clone)
+- GitLab (plataforma principal)
+- GitLab Runner (execução de pipelines)
 
-## Structure
+Essa separação reduz acoplamento entre serviços e segue boas práticas utilizadas em ambientes CI/CD modernos.
 
-| Service        | Image                           | Ports                              |
-|----------------|---------------------------------|------------------------------------|
-| gitlab         | gitlab/gitlab-ce:18.0.2-ce.0   | 80 (HTTP), 8443 (HTTPS), 2222 (SSH) |
-| gitlab-runner  | gitlab/gitlab-runner:v18.0.0   | — (docker executor)                |
+---
 
-## Quick start
+## Desacoplamento Operacional
 
-```bash
-cp .env.example .env    # configure your variables
-docker compose up -d    # start GitLab and Runner
+O GitLab e os Runners possuem ciclos de vida diferentes:
+
+### GitLab
+Responsável por:
+- Interface Web
+- Repositórios Git
+- API
+- Registry
+- Autenticação
+- Banco de dados interno
+
+### Runner
+Responsável por:
+- Build
+- Testes
+- Deploy
+- Execução das pipelines
+
+Com isso:
+- atualizações tornam-se independentes
+- reinicializações afetam apenas um componente
+- manutenção fica mais simples
+
+---
+
+## Escalabilidade Horizontal
+
+A estrutura permite adicionar múltiplos runners futuramente sem alterar o ambiente principal.
+
+Exemplo:
+- runner-docker
+- runner-shell
+- runner-gpu
+- runner-arm
+
+Isso facilita crescimento da plataforma CI/CD conforme a demanda aumenta.
+
+---
+
+## Persistência de Dados
+
+Os dados críticos do GitLab utilizam volumes persistentes:
+
+- `/etc/gitlab`
+- `/var/log/gitlab`
+- `/var/opt/gitlab`
+
+Garantindo:
+- persistência após reinicialização
+- maior segurança operacional
+- facilidade para backup e restore
+
+---
+
+## Automação do Registro do Runner
+
+O processo de autenticação do runner foi automatizado via script shell utilizando variáveis externas em `.env`.
+
+Benefícios:
+- padronização
+- reprodutibilidade
+- redução de erros manuais
+- provisionamento simplificado
+
+---
+
+## Configuração Externalizada via `.env`
+
+As variáveis sensíveis e de ambiente foram desacopladas dos arquivos Compose.
+
+Exemplos:
+- URL do GitLab
+- Tokens
+- Senhas
+- Portas
+- Hostname
+
+Isso melhora:
+- segurança
+- portabilidade
+- versionamento
+- reutilização da infraestrutura
+
+---
+
+## Isolamento de Rede
+
+Cada compose utiliza rede bridge dedicada.
+
+Isso:
+- melhora organização
+- reduz acoplamento entre containers
+- facilita troubleshooting
+- aumenta previsibilidade da comunicação
+
+---
+
+## Uso de Docker Executor
+
+O Runner utiliza Docker Executor através do compartilhamento do socket Docker:
+
+`/var/run/docker.sock`
+
+Permitindo:
+- builds rápidos
+- execução de containers nas pipelines
+- menor overhead comparado ao Docker-in-Docker
+
+---
+
+## Arquitetura Preparada para Expansão
+
+A estrutura atual permite futura integração com:
+- Reverse Proxy
+- HTTPS/TLS
+- DNS interno
+- Monitoramento
+- Backup automatizado
+- Kubernetes
+- Runners distribuídos
+
+Sem necessidade de refatoração significativa.
+
+---
+
+## Organização da Infraestrutura
+
+Estrutura recomendada:
+
+```text
+infra/
+├── gitlab/
+│   ├── docker-compose.gitlab.yml
+│   └── .env
+│
+├── runner/
+│   ├── docker-compose.runner.yml
+│   ├── register-runner.sh
+│   └── .env
 ```
 
-Full setup guide → [`docs/setup.md`](docs/setup.md) (EN) / [`docs/setup-pt-br.md`](docs/setup-pt-br.md) (PT-BR)
+Essa organização melhora:
+- manutenção
+- automação
+- legibilidade
+- versionamento
+- CI da própria infraestrutura
 
-Includes: configuring `.env`, registering the runner, pipeline example, persistent volumes, and how to stop/remove.
+---
 
-## DevOps best practices
+## Compatibilidade com GitLab 18+
 
-| Practice | How it's applied |
-|---|---|
-| **Infrastructure as Code** | Entire environment defined in `docker-compose.yml` — reproducible with a single command |
-| **Separation of concerns** | Configuration isolated in `.env`, secrets in `.gitignore`d `.env`, logic in `docker-compose.yml` |
-| **Immutable infrastructure** | Services use pinned version tags (`18.0.2-ce.0`, `v18.0.0`) instead of `latest` |
-| **Persistence via volumes** | Named Docker volumes keep data across restarts |
-| **Service isolation** | GitLab and Runner run in separate containers with distinct responsibilities |
-| **Docker-in-Docker (DinD)** | Runner mounts `/var/run/docker.sock` so pipeline jobs can spawn containers |
-| **Health management** | `restart: unless-stopped` ensures services recover from failures automatically |
-| **Single source of truth** | All configurable parameters centralized in `.env` |
-| **Security** | `shm_size: 256m` prevents shared memory issues; SSH on non-standard port |
+A solução foi adaptada para o novo fluxo de autenticação de runners introduzido nas versões recentes do GitLab, utilizando:
+- Authentication Tokens (`glrt-*`)
+- Registro não interativo
+- Configuração centralizada no servidor GitLab
 
-## To do
-
-- **Automated runner registration** — a shell script that registers the runner automatically via the GitLab API
-- **Real pipeline** — a `.gitlab-ci.yml` that builds an app, runs tests, creates a Docker image, and pushes to the registry
-- **TLS/HTTPS** — configure Let's Encrypt or self-signed certificates
-- **Terraform provider** — manage GitLab resources as code
-- **Monitoring** — add Prometheus + Grafana for GitLab metrics
-- **Backup strategy** — script to dump and restore Docker volumes
+Garantindo compatibilidade com versões atuais e futuras da plataforma.
