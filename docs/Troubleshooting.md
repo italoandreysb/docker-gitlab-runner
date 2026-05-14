@@ -1,6 +1,8 @@
-# GitLab Runner Docker Network Troubleshooting
+# Troubleshootin docs
 
-## Problem
+## GitLab Runner Docker Network Troubleshooting
+
+### Problem
 
 GitLab CI pipeline fails during artifact upload.
 
@@ -8,7 +10,7 @@ Pipeline jobs execute correctly, but fail at the end with an error related to ar
 
 ---
 
-# Example Error
+## Example Error
 
 ```text
 Uploading artifacts...
@@ -25,7 +27,7 @@ no such host
 
 ---
 
-# Root Cause
+## Root Cause
 
 The GitLab Runner uses the Docker executor.
 
@@ -51,7 +53,7 @@ could not be resolved by Docker DNS.
 
 ---
 
-# Verify Existing Networks
+## Verify Existing Networks
 
 Check Docker networks:
 
@@ -68,7 +70,7 @@ NETWORK ID     NAME
 
 ---
 
-# Verify GitLab Runner Configuration
+## Verify GitLab Runner Configuration
 
 Open the runner container:
 
@@ -84,7 +86,7 @@ cat /etc/gitlab-runner/config.toml
 
 ---
 
-# Problematic Configuration
+## Problematic Configuration
 
 ```toml
 [runners.docker]
@@ -97,7 +99,7 @@ Temporary pipeline containers start in the default Docker bridge network.
 
 ---
 
-# Solution
+## Solution
 
 Add `network_mode` to the Docker runner configuration.
 
@@ -117,7 +119,7 @@ docker network ls
 
 ---
 
-# Restart GitLab Runner
+## Restart GitLab Runner
 
 After editing the config:
 
@@ -127,7 +129,7 @@ docker restart gitlab-runner
 
 ---
 
-# Validation
+## Validation
 
 Inside the runner container:
 
@@ -149,7 +151,7 @@ PING gitlab (172.x.x.x)
 
 ---
 
-# Expected Result
+## Expected Result
 
 Pipeline should complete successfully:
 
@@ -160,7 +162,7 @@ Job succeeded
 
 ---
 
-# Why This Happens
+## Why This Happens
 
 Docker DNS resolution only works between containers connected to the same Docker network.
 
