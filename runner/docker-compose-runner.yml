@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  gitlab-runner:
+    image: gitlab/gitlab-runner:v18.0.0 # Runner oficial
+    container_name: gitlab-runner
+    restart: unless-stopped
+
+    volumes:
+      # Configuração persistente do runner
+      - gitlab_runner_config:/etc/gitlab-runner
+
+      # Permite executar containers Docker nas pipelines
+      # ATENÇÃO: isso concede acesso elevado ao host
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    networks:
+      - gitlab-runner-network
+
+volumes:
+  gitlab_runner_config:
+
+networks:
+  gitlab-runner-network:
+    driver: bridge
